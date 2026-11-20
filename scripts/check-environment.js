@@ -147,11 +147,15 @@ export function checkEnvironment({ requireEnvFile = false } = {}) {
     }
   }
 
-  // 5. Comprobar archivo .env local (informativo o requerido según modo)
+  // 5. Comprobar archivo .env o .env.local (informativo o requerido según modo)
   const envPath = resolve(ROOT_DIR, '.env');
-  if (!existsSync(envPath)) {
+  const envLocalPath = resolve(ROOT_DIR, '.env.local');
+  const hasEnv = existsSync(envPath);
+  const hasEnvLocal = existsSync(envLocalPath);
+
+  if (!hasEnv && !hasEnvLocal) {
     const msg =
-      'No se encontró el archivo ".env" en la raíz. Es necesario para conectar el frontend local con tu proyecto Supabase.';
+      'No se encontró el archivo ".env" (ni ".env.local") en la raíz. Es necesario para conectar el frontend local con tu proyecto Supabase.';
     const fix =
       'Copia ".env.example" a ".env" o ejecuta "npm run setup" para configurarlo con tu VITE_SUPABASE_URL y VITE_SUPABASE_PUBLISHABLE_KEY.';
     if (requireEnvFile) {
@@ -161,8 +165,17 @@ export function checkEnvironment({ requireEnvFile = false } = {}) {
       logWarn(`${msg}\n          -> Sugerencia: ${fix}`);
     }
   } else {
-    const envContent = readFileSync(envPath, 'utf-8');
-    const hasUrl = /^VITE_SUPABASE_URL=https:\/\/.+/m.test(envContent);
+    const combinedRaw = [
+      hasEnv ? readFileSync(envPath, 'utf-8') : '',
+      hasEnvLocal ? readFileSync(envLocalPath, 'utf-8') : ''
+    ].join('\n');
+
+    // Ignorar líneas de comentarios (#) al analizar las variables de entorno
+    const envContent = combinedRaw
+      .split(/\r?\n/)
+      .filter((line) => !line.trim().startsWith('#'))
+      .join('\n');
+    const hasUrl = /^VITE_SUPABASE_URL=https?:\/\/.+/m.test(envContent);
     const hasKey = /^VITE_SUPABASE_PUBLISHABLE_KEY=.+/m.test(envContent);
     const hasPlaceholder =
       envContent.includes('tu-project-ref.supabase.co') ||

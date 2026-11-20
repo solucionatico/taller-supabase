@@ -62,3 +62,27 @@ En este archivo se registran cronológicamente todas las actividades, decisiones
   - `npm run vercel -- --version`: `41.7.8` (binario local).
   - `.gitignore`: Verificado con `git status` que `node_modules/`, `apps/web/dist/` e `INSTRUCTIONS.md` quedan excluidos de Git.
 
+### 9. Ampliación Didáctica de la Sección 6 en `README.md`
+- **Acción**: Se documentaron en `README.md` las opciones de **Data API y RLS** que aparecen al crear un proyecto en el Dashboard de Supabase (`Enable Data API`, `Grant API access to new tables automatically` y `Enable RLS on new tables automatically`).
+
+### 10. Aclaración del Uso del `Reference ID` en la Sección 7 de `README.md`
+- **Acción**: Se actualizó la sección 7 de `README.md` para explicar qué hacer inmediatamente con el `Reference ID` (usarlo en el Paso 9 al ejecutar `npm run supabase -- link --project-ref <TU_PROJECT_REF>` y para formar `VITE_SUPABASE_URL`) y cómo guardar de una vez las variables en `.env` para no perderlas del portapapeles.
+
+### 11. Aclaración sobre Contraseña de BD en `supabase link` (Sección 9 de `README.md`)
+- **Acción**: Se documentó en la sección 9 de `README.md` que en Supabase CLI v2.x es normal que `supabase link` finalice sin pedir la contraseña de la base de datos gracias al uso de la sesión activa de `supabase login`.
+
+### 12. Explicación Pedagógica del Sistema de Migraciones (Sección 10 de `README.md`)
+- **Acción**: Se añadió en la sección 10 de `README.md` la explicación sobre la tabla de control `supabase_migrations.schema_migrations`, qué aporta Supabase CLI sobre PostgreSQL y cómo crear nuevas migraciones con `npm run supabase -- migration new <nombre>`.
+
+### 13. Actualización de Vercel CLI al Nuevo Flujo de Autenticación
+- **Acción**: Se actualizó `vercel` en `package.json` y `package-lock.json` a la última versión estable para utilizar el nuevo flujo de autenticación por navegador (OAuth Device Login), ya que Vercel retiró el flujo antiguo (HTTP 410 en v41).
+
+### 14. Anexo Opcional de Desarrollo Local con Docker y Soporte `.env.local`
+- **Acción**: Se añadió la sección 18 en `README.md` explicando el flujo opcional de desarrollo 100 % local (`npm run supabase -- start` y `npm run supabase -- functions serve`) y cómo aprovechar `.env.local` para sobrescribir temporalmente `.env`. Además, se ajustaron `apps/web/src/services/supabase.js` y `scripts/check-environment.js` para admitir URLs locales `http://127.0.0.1:54321` además de `https://`.
+
+
+
+
+
+
+

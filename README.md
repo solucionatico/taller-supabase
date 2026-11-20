@@ -23,6 +23,7 @@ Bienvenido al proyecto práctico del taller **Herramientas gratuitas de desplieg
 15. [Verificación del funcionamiento](#15-verificación-del-funcionamiento)
 16. [Solución de errores frecuentes](#16-solución-de-errores-frecuentes)
 17. [Explicación de seguridad y credenciales](#17-explicación-de-seguridad-y-credenciales)
+18. [Anexo opcional: Ejecutar Supabase y las Edge Functions en local (con Docker)](#18-anexo-opcional-ejecutar-supabase-y-las-edge-functions-en-local-con-docker)
 
 ---
 
@@ -153,6 +154,10 @@ Verás un informe detallado confirmando que Node.js, `npm`, `node_modules`, los 
    - **Name**: `taller-supabase` (o el nombre que prefieras).
    - **Database Password**: Escribe una contraseña segura y **guárdala en un lugar seguro** (la necesitarás en la terminal cuando vincules la CLI en el paso 9).
    - **Region**: Elige la región más cercana a tu ubicación.
+   - **Security / Data API Settings** (deja las opciones **por defecto**, o marca también la tercera si lo deseas):
+     - `[x] Enable Data API` *(Debe estar marcada)*: Activa la API web (PostgREST) de Supabase para que nuestra Edge Function y el SDK `@supabase/supabase-js` puedan consultar PostgreSQL mediante HTTPS.
+     - `[x] Grant API access to new tables automatically` *(Debe estar marcada)*: Concede automáticamente los permisos básicos de conexión de la API sobre las tablas nuevas del esquema `public`.
+     - `[ ] / [x] Enable RLS on new tables automatically` *(Opcional — puedes dejarla como viene o marcarla)*: Activa automáticamente **Row Level Security (Seguridad a Nivel de Fila)** cuando se crea una tabla nueva. En nuestro proyecto, nuestra migración SQL ([20261120000000_initial_schema.sql](./supabase/migrations/20261120000000_initial_schema.sql)) ya activa explícitamente RLS con `ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;`, por lo que funcionará igual tanto si la marcas como si la dejas por defecto.
 4. Haz clic en **"Create new project"** y espera entre 1 y 2 minutos mientras Supabase aprovisiona tu base de datos PostgreSQL.
 
 > **Nota importante**: **NO** necesitas crear ninguna base de datos ni tabla manualmente desde el Dashboard de Supabase. Supabase ya crea la base de datos PostgreSQL automáticamente y nosotros crearemos la tabla `public.tasks` y sus políticas de seguridad mediante migraciones SQL desde la terminal.
@@ -163,19 +168,28 @@ Verás un informe detallado confirmando que Node.js, `npm`, `node_modules`, los 
 
 > **[En el Navegador — Supabase Dashboard]**
 
-Una vez que tu proyecto esté activo en Supabase Dashboard:
+Una vez que tu proyecto esté activo en Supabase Dashboard, vamos a localizar **3 datos clave** que usaremos en los siguientes pasos.
 
-1. **Obtener el `Project Ref` (Reference ID)**:
+> **Recomendación práctica para no perderlos del portapapeles**:
+> Antes de copiarlos, crea tu archivo `.env` en la raíz del proyecto (copiando `.env.example` a `.env`) o abre un bloc de notas temporal para ir pegando cada dato a medida que lo encuentres:
+> - En Linux / macOS: `cp .env.example .env`
+> - En Windows: `copy .env.example .env`
+
+1. **Localizar el `Project Ref` (Reference ID)**:
    - Ve a **Project Settings** (icono de engranaje en la barra lateral izquierda) -> **General**.
-   - Copia el valor de **Reference ID** (es un código de 20 letras minúsculas, por ejemplo: `abcdefghijklmnopqrst`).
-   - También puedes verlo en la URL del navegador: `https://supabase.com/dashboard/project/<TU_PROJECT_REF>`.
+   - Busca el campo **Reference ID** (es un código de 20 letras minúsculas, por ejemplo: `abcdefghijklmnopqrst`).
+   - También aparece siempre en la barra de direcciones del navegador cuando estás dentro de tu proyecto: `https://supabase.com/dashboard/project/<TU_PROJECT_REF>`.
+   - **¿Qué harás con este Reference ID?**:
+     - Lo usarás ahora mismo en el **Paso 9** para decirle a la CLI de Supabase en tu terminal a cuál proyecto conectarse (`npm run supabase -- link --project-ref <TU_PROJECT_REF>`).
+     - Además, si te fijas, ese mismo código forma la URL pública de tu proyecto: `https://<TU_PROJECT_REF>.supabase.co`.
 
-2. **Obtener la URL del proyecto (`VITE_SUPABASE_URL`) y la clave pública (`VITE_SUPABASE_PUBLISHABLE_KEY`)**:
-   - En **Project Settings**, entra a **API Keys** (o **Data API**).
-   - Copia la **Project URL**: tiene la forma `https://<tu-project-ref>.supabase.co`.
-   - Copia la clave pública:
-     - **Publishable key** (`sb_publishable_...`) o la clave **`anon` `public`** (`eyJ...`).
-   - **ADVERTENCIA DE SEGURIDAD**: **Nunca** copies ni uses la clave `service_role` ni la `secret key` en el frontend.
+2. **Localizar y guardar la URL del proyecto (`VITE_SUPABASE_URL`) y la clave pública (`VITE_SUPABASE_PUBLISHABLE_KEY`)**:
+   - En **Project Settings**, entra a **API Keys** (y/o **Data API**).
+   - **Project URL**: tiene la forma `https://<tu-project-ref>.supabase.co`. Cópiala y pégala en tu archivo `.env` en la línea `VITE_SUPABASE_URL=...`.
+   - **Clave pública (`Publishable key` o `anon public`)**:
+     - Copia la **Publishable key** (`sb_publishable_...`) o la clave **`anon` `public`** (`eyJ...`).
+     - Pégala en tu archivo `.env` en la línea `VITE_SUPABASE_PUBLISHABLE_KEY=...`.
+   - **ADVERTENCIA DE SEGURIDAD**: **Nunca** copies ni uses la clave `service_role` ni la `secret key` en el archivo `.env`.
 
 ---
 
@@ -206,7 +220,8 @@ Vincula tu repositorio local con el proyecto remoto que creaste en Supabase reem
 npm run supabase -- link --project-ref <TU_PROJECT_REF>
 ```
 
-Cuando la CLI te solicite la contraseña de la base de datos (`Enter your database password`), escribe la **Database Password** que definiste en el paso 6 y presiona `Enter`.
+> **¿Es normal que no pida la contraseña de la base de datos?**
+> **Sí, es completamente normal.** Las versiones recientes de Supabase CLI (`v2.x`) utilizan automáticamente la sesión que autorizaste en el paso anterior (`supabase login`) para vincular el proyecto y conectarse sin pedirte la contraseña en consola. *(Únicamente si en algún entorno de red específico la CLI te muestra `Enter your database password`, escribe la contraseña que creaste en el Paso 6).*
 
 ---
 
@@ -230,6 +245,15 @@ npm run deploy:db
 ```
 
 Si la CLI te pregunta si deseas aplicar la migración pendiente (`Do you want to push these migrations to the remote database?`), responde `Y` y presiona `Enter`.
+
+> **¿Cómo funcionan las migraciones por dentro? (Nota para la clase)**
+> - **¿Dónde se registra qué migraciones ya se ejecutaron?**: En tu proyecto local viven como archivos `.sql` dentro de `supabase/migrations/`. Cuando ejecutas `npm run deploy:db` (`supabase db push`), Supabase CLI guarda el historial en una tabla interna de tu base de datos llamada `supabase_migrations.schema_migrations` (también puedes verla en el Dashboard en **Database -> Migrations**). Así sabe cuáles archivos ya aplicó y no los vuelve a ejecutar dos veces.
+> - **¿Es nativo de PostgreSQL o de Supabase?**: PostgreSQL solo ejecuta SQL puro; no tiene un gestor de migraciones nativo. El sistema de migraciones por archivos con marca de tiempo (`YYYYMMDDHHmmss_nombre.sql`) y tabla de control (`schema_migrations`) lo proporciona **Supabase CLI** (siguiendo el estándar de la industria que también usan herramientas como Flyway, Prisma o Laravel).
+> - **¿Cómo se crea una nueva migración normalmente?**: En lugar de crear el archivo a mano, se ejecuta el comando de la CLI:
+>   ```bash
+>   npm run supabase -- migration new <nombre_de_la_migracion>
+>   ```
+>   *(Por ejemplo: `npm run supabase -- migration new agregar_prioridad`). Esto genera automáticamente el archivo `.sql` con el timestamp exacto en `supabase/migrations/` listo para que escribas tus sentencias SQL.*
 
 ---
 
@@ -438,6 +462,42 @@ El archivo [`.gitignore`](./.gitignore) está configurado para impedir que se su
 - Archivos de variables de entorno (`.env`, `.env.*`, `supabase/functions/.env`).
 - Sesiones y metadatos locales de vinculación (`.vercel/`, `supabase/.temp/`).
 - Dependencias locales (`node_modules/`).
+
+---
+
+## 18. Anexo opcional: Ejecutar Supabase y las Edge Functions en local (con Docker)
+
+Durante el taller trabajamos directamente contra tu proyecto remoto de Supabase en la nube para no exigir **Docker** en tu computador. Sin embargo, si en tu equipo personal tienes **Docker Desktop** (o Docker Engine en Linux) instalado y deseas probar la base de datos, Auth y las Edge Functions **100 % en local** sin conectarte a internet:
+
+1. **Inicia el entorno local de Supabase**:
+   ```bash
+   npm run supabase -- start
+   ```
+   - La primera vez descargará las imágenes Docker oficiales de Supabase, levantará PostgreSQL, Auth, un Dashboard local (Supabase Studio en `http://127.0.0.1:54323`) y el Gateway de API en **`http://127.0.0.1:54321`**.
+   - Además, aplicará automáticamente las migraciones de `supabase/migrations/`.
+   - Al terminar, te mostrará en la terminal tu `API URL` (`http://127.0.0.1:54321`) y tu `Publishable key` / `anon key` local.
+
+2. **Ejecuta las Edge Functions localmente (con recarga en vivo)**:
+   En otra terminal, ejecuta:
+   ```bash
+   npm run supabase -- functions serve
+   ```
+   Esto levantará la función `supabase/functions/tasks/index.js` localmente en `http://127.0.0.1:54321/functions/v1/tasks`, detectando cualquier cambio que guardes en el código al instante.
+
+3. **Apunta el frontend al entorno local (`.env.local` o `.env`)**:
+   - **¿Puedo usar `.env.local` o debe ser en `.env`?**: **Puedes usar cualquiera de los dos**, pero usar **`.env.local` es lo más cómodo**.
+   - **¿Por qué?**: Vite carga primero `.env` y luego **sobrescribe** los valores con los que existan en `.env.local`. Así puedes dejar tus credenciales de la nube intactas en `.env`, y crear (o editar) `.env.local` con las credenciales locales que te imprimió `supabase start`:
+     ```env
+     VITE_SUPABASE_URL=http://127.0.0.1:54321
+     VITE_SUPABASE_PUBLISHABLE_KEY=<clave_publicable_o_anon_local_de_supabase_start>
+     ```
+   - Como nuestro frontend utiliza `supabase.functions.invoke('tasks')`, **no necesitas tocar ni una sola línea de código**: el SDK detectará automáticamente que `VITE_SUPABASE_URL` es `http://127.0.0.1:54321` y enviará tanto el login como las llamadas a la Edge Function `tasks` a tu servidor local.
+   - Cuando quieras volver a conectarte a tu proyecto en la nube de Supabase, simplemente comenta o borra esas dos líneas de `.env.local` y Vite volverá a usar las de `.env`.
+
+4. **Detener los contenedores locales cuando termines**:
+   ```bash
+   npm run supabase -- stop
+   ```
 
 ---
 

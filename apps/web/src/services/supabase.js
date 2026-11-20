@@ -10,7 +10,7 @@ const supabasePublishableKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
 export const isSupabaseConfigured =
   Boolean(supabaseUrl) &&
   Boolean(supabasePublishableKey) &&
-  supabaseUrl.startsWith('https://') &&
+  /^https?:\/\//.test(supabaseUrl) &&
   !supabaseUrl.includes('tu-project-ref.supabase.co') &&
   !supabasePublishableKey.includes('tu-clave-publicable-o-anon-key');
 

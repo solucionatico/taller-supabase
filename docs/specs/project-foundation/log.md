@@ -6,3 +6,5 @@
   - Se definió `"type": "module"` en `package.json` para que todos los scripts en `scripts/*.js` y configuraciones como `vite.config.js` utilicen `import`/`export` sin requerir extensión `.mjs`.
   - Se fijó `"engines": { "node": ">=22.0.0" }` para asegurar compatibilidad con las versiones actuales de Supabase CLI y Vercel CLI.
   - Se configuró `.gitignore` incluyendo `node_modules/`, `.env`, `.env.*`, `!.env.example`, `.vercel/`, `**/.vercel/`, `supabase/.temp/`, `supabase/functions/.env`, `apps/web/dist/` e `INSTRUCTIONS.md`.
+  - Se actualizó la dependencia local `vercel` a la última versión estable (`vercel@latest`) para soportar el nuevo flujo OAuth Device Login de Vercel CLI (el flujo legado de `41.x` devuelve HTTP 410).
+
