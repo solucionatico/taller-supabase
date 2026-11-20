@@ -53,7 +53,7 @@ flowchart LR
     VueApp -->|1. Registro / Login / Sesión| SupaAuth
     VueApp -->|2. Peticiones CRUD con Bearer JWT| EdgeFn
     EdgeFn -->|3. Consulta reenviando el JWT| Postgres
-    Postgres -->|4. Verifica auth.uid() = user_id| EdgeFn
+    Postgres -->|4. Verifica user_id| EdgeFn
 ```
 
 ### ¿Qué papel cumple cada servicio?
