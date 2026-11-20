@@ -1,0 +1,11 @@
+-- ============================================================================
+-- Archivo de datos semilla (seed.sql)
+-- ============================================================================
+-- Nota pedagógica:
+-- En esta aplicación, cada registro de `public.tasks` está vinculado a un
+-- usuario real de `auth.users` y protegido por Row Level Security (RLS).
+--
+-- Los usuarios y sus tareas se crean directamente desde la aplicación web
+-- tras registrarse con correo electrónico y contraseña.
+-- ============================================================================
+SELECT 'Esquema public.tasks listo para recibir usuarios autenticados.' AS status;

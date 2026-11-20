@@ -1,0 +1,28 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno y secretos (NUNCA subir a Git)
+.env
+.env.*
+!.env.example
+
+# Archivos locales de Vercel CLI
+.vercel/
+**/.vercel/
+
+# Archivos temporales y secretos locales de Supabase CLI
+supabase/.temp/
+supabase/functions/.env
+
+# Compilados del frontend
+apps/web/dist/
+dist/
+
+# Archivo inicial de instrucciones de generación del proyecto
+INSTRUCTIONS.md
+
+# Registros y archivos del sistema operativo
+npm-debug.log*
+*.log
+.DS_Store
+Thumbs.db
